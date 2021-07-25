@@ -1,0 +1,14 @@
+{
+    "server": "localhost",
+    "authentication": {
+        "type": "default",
+        "options": {
+            "userName": "sa",
+            "password": "1"
+        }
+    },
+    "options": {
+        "encrypt": false,
+        "database": "SchedulesManager"
+    }
+}
