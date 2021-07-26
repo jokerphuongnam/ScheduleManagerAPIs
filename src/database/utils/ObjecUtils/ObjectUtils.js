@@ -7,6 +7,16 @@ function removeBlankProperties() {
     return this
 }
 
-export {
-    removeBlankProperties
+function exportFromBodyForUser(){
+    return this.body? {
+        ...this.body,
+        birthday: Number(this.body.birthday),
+        avatar: this.file,
+        gender: this.body.gender.toLowerCase() == 'true' ? true : false
+    }: this
+}
+
+module.exports = {
+    removeBlankProperties,
+    exportFromBodyForUser
 }

@@ -1,8 +1,8 @@
-import {
+const {
     Request,
     Connection
-} from 'tedious'
-import configure from './configure.json'
+} = require('tedious')
+const configure = require('./configure.json') 
 
 class MSSQLUtils {
     Config = {}
@@ -65,4 +65,4 @@ class MSSQLUtils {
 
 const msSqlUtils = new MSSQLUtils()
 
-export default msSqlUtils
+module.exports = msSqlUtils

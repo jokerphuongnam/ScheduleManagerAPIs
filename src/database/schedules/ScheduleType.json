@@ -3,6 +3,6 @@
     "member": "member",
     "task": "task",
     "image": "image",
-    "record": "record",
-    "video": "video"
+    "video": "video",
+    "audio": "audio"
 }

@@ -1,4 +1,4 @@
-export default class QueryUtils {
+module.exports = class QueryUtils {
     static login({
         loginId,
         userId
@@ -15,7 +15,8 @@ export default class QueryUtils {
         birthday,
         gender,
         loginId,
-        type
+        type,
+        avatar
     }) {
         return `
             EXEC	[dbo].[sp_create_user]
@@ -24,7 +25,61 @@ export default class QueryUtils {
             @BIRTHDAY = ${birthday},
             @GENDER = ${gender},
             @LOGIN_ID = N'${loginId}',
-            @TYPE = N'${type}'
+            @TYPE = N'${type}',
+            @AVATAR = ${avatar ? `N'${avatar}'` : 'NULL'}
+        `
+    }
+
+    //
+    static editUser({
+        userId,
+        avatar,
+        firstName,
+        lastName,
+        birthday,
+        gender
+    }) {
+        return `
+            UPDATE [dbo].[users] SET 
+                avatar = ${avatar? `N'${avatar}'`: 'NULL'}
+                ${firstName? `,first_name = N'${firstName}'`: ''}
+                ${lastName? `,first_name = N'${lastName}'`: ''}
+                ${birthday? `,first_name = ${lastName}`: ''}
+                ${gender? `,first_name = ${gender === true ? 1 : 0}`: ''}
+            WHERE user_id = '${userId}'
+        `
+    }
+
+    static addToken({
+        userId,
+        loginId,
+        type
+    }) {
+        return `
+            EXEC	[dbo].[sp_add_token]
+            @USER_ID = '${userId}',
+            @LOGIN_ID = N'${loginId}',
+            @LOGIN_TYPE = N'${type}'
+        `
+    }
+
+    static getSchedules({
+        userId,
+        startTime,
+        endTime
+    }) {
+        return `
+            EXEC	[dbo].[sp_get_schedules]
+            @USER_ID = '${userId}',
+            @START_TIME = ${startTime ? startTime : 'NULL'},
+            @END_TIME = ${endTime ? endTime : 'NULL'}
+        `
+    }
+
+    static getScheduleInfo(scheduleId) {
+        return `
+            EXEC	[dbo].[sp_get_schedule_info]
+            @SCHEDULE_ID = '${scheduleId}'
         `
     }
 
@@ -43,32 +98,115 @@ export default class QueryUtils {
         `
     }
 
-    static addToken({
-        userId,
-        loginId,
-        type
+    static deleteSchedule(scheduleId) {
+        return `
+            DELETE FROM
+                dbo.schedules
+            WHERE
+                dbo.schedules.schedule_id = '${scheduleId}'
+        `
+    }
+
+    //
+    static createTask({
+        detail,
+        scheduleId,
+        userId
     }) {
         return `
-            EXEC	[dbo].[sp_add_token]
-            @USER_ID = '${userId}',
-            @LOGIN_ID = N'${loginId}',
-            @LOGIN_TYPE = N'${type}'
+            INSERT INTO dbo.tasks(
+                detail,
+                schedule_id,
+                create_by
+            ) VALUES (
+                N'${detail}',
+                '${scheduleId}',
+                '${userId}'
+            )
         `
     }
 
-    static getSchedules({userId, startTime, endTime}) {
+    //
+    static editTask({
+        taskId,
+        detail,
+        finishBy
+    }) {
         return `
-            EXEC	[dbo].[sp_get_schedules]
-            @USER_ID = '${userId}',
-            @START_TIME = ${startTime ? startTime : 'NULL'},
-            @END_TIME = ${endTime ? endTime : 'NULL'}
+            UPDATE dbo.tasks
+            SET 
+                detail = N'${detail}'${finishBy ? `,
+                        finish_at = ,
+                        finish_by = ''
+                    `:''
+                }
+            WHERE
+                task_id = '${taskId}'
         `
     }
 
-    static getScheduleInfo(scheduleId) {
+    //
+    static deleteTask(taskId) {
         return `
-            EXEC	[dbo].[sp_get_schedule_info]
-            @SCHEDULE_ID = '${scheduleId}'
+            DELETE FROM
+                dbo.tasks
+            WHERE
+                dbo.tasks.task_id = '${taskId}'
+        `
+    }
+
+    //
+    static addMember({
+        userIdAdded,
+        scheduleId,
+        userId
+    }) {
+        return `
+            INSERT INTO dbo.members(
+                user_id,
+                schedule_id,
+                add_by_or_founder
+            ) VALUES (
+                '${userIdAdded}',
+                '${scheduleId}',
+                '${userId}'
+            )
+        `
+    }
+
+    //
+    static leaveGroup(userId) {
+        return `
+            DELETE FROM
+                dbo.members
+            WHERE
+                dbo.members.user_id = '${userId}'
+        `
+    }
+
+    //
+    static createMedia({
+        mediaType,
+        mediaName,
+        scheduleId,
+        userId
+    }) {
+        return `
+            EXEC	[dbo].[sp_add_media]
+            @MEDIA_TYPE = N'${mediaType}',
+            @MEDIA_NAME = N'${mediaName}',
+            @SCHEDULE_ID = '${scheduleId}',
+            @ID_USER = '${userId}'
+        `
+    }
+
+    //
+    static deleteMedia(mediaId) {
+        return `
+            DELETE FROM
+                dbo.multimedia
+            WHERE
+                dbo.multimedia.media_id = '${mediaId}'
         `
     }
 }

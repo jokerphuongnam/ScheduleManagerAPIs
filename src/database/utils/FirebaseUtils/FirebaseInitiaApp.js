@@ -1,8 +1,6 @@
-import firebase from 'firebase'
-import configure from './firebaseconfigure.json'
-
-firebase.initializeApp({
+const firebase = require('firebase')
+const configure = require('./firebaseconfigure.json')
+const temp = firebase.initializeApp({
     ...configure
 })
-
-export default firebase
+module.exports = temp

@@ -1,6 +1,6 @@
-import MSSqlSchedules from "../database/schedules/MSSqlSchedules";
+const MSSqlSchedules = require('../database/schedules/MSSqlSchedules')
 
-export default class ScheduleRepository {
+module.exports = class ScheduleRepository {
     msSqlSchedules = new MSSqlSchedules()
 
     getSchedules(scheduleQuery){
@@ -9,5 +9,13 @@ export default class ScheduleRepository {
 
     getScheduleInfo(scheduleId){
         return this.msSqlSchedules.getScheduleInfo(scheduleId)
+    }
+
+    deleteSchedule(scheduleId){
+        return this.msSqlSchedules.deleteSchedule(scheduleId)
+    }
+
+    createTask(task){
+        return this.msSqlSchedules.createTask(task)
     }
 }

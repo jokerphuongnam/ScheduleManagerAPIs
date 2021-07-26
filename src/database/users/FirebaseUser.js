@@ -1,7 +1,7 @@
-import firebase from '../utils/FirebaseUtils/FirebaseInitiaApp'
-import admin from '../utils/FirebaseUtils/FirebaseAdminInitiaApp'
+const firebase = require('../utils/FirebaseUtils/FirebaseInitiaApp')
+const admin = require('../utils/FirebaseUtils/FirebaseAdminInitiaApp')
 
-export default class FirebaseUser {
+module.exports = class FirebaseUser {
     auth = firebase.auth()
     adminAuth = admin.auth()
 
@@ -18,12 +18,15 @@ export default class FirebaseUser {
                 resolve(this.currentUser.uid)
             }).catch((e) => {
                 reject(404)
-            }).finally(()=>{
+            }).finally(() => {
                 return this.auth.signOut()
             })
         })
     }
-
+    
+    signOut() {
+        return this.auth.signOut()
+    }
     register({
         email,
         password
@@ -32,8 +35,9 @@ export default class FirebaseUser {
             this.auth.createUserWithEmailAndPassword(email, password).then(() => {
                 resolve(this.currentUser.uid)
             }).catch((e) => {
+                console.log(e)
                 reject(409)
-            }).finally(()=>{
+            }).finally(() => {
                 return this.auth.signOut()
             })
         })
@@ -57,7 +61,7 @@ export default class FirebaseUser {
             }).catch((e) => {
                 console.log(e)
                 reject(404)
-            }).finally(()=>{
+            }).finally(() => {
                 return this.auth.signOut()
             })
         })

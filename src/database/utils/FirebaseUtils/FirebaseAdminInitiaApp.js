@@ -1,10 +1,10 @@
-import admin from 'firebase-admin'
-import configure from './firebaseconfigure.json'
-import serviceAccount from './private-key.json'
+const admin = require('firebase-admin')
+const configure = require('./firebaseconfigure.json')
+const serviceAccount = require('./private-key.json')
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
     ...configure
 })
 
-export default admin
+module.exports = admin

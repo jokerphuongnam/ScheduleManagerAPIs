@@ -1,11 +1,8 @@
-import Express from 'express'
-import multer from 'multer'
-import ScheduleRepository from '../repository/ScheduleRepository'
-
+const Express = require('express')
+const ScheduleRepository = require('../repository/ScheduleRepository') 
 
 const router = Express.Router()
 const repository = new ScheduleRepository()
-
 
 router.get('/scheduleinfo/:scheduleId', (req, res) => {
     repository.getScheduleInfo(req.params.scheduleId).then((scheduleInfo)=>{
@@ -23,4 +20,21 @@ router.get('/schedules/:userId', (req, res) =>{
     })
 })
 
-export default router
+router.delete('/delete/:scheduleId', (req, res) =>{
+    repository.deleteSchedule(req.params.scheduleId).then((scheduleInfo)=>{
+        res.json(scheduleInfo)
+    }).catch((e)=>{
+        res.sendStatus(e)
+    })
+})
+
+router.post('/createtask', (req, res) =>{
+    // {detail,scheduleId,userId}
+    repository.createTask(req.body).then((scheduleInfo)=>{
+        res.json(scheduleInfo)
+    }).catch((e)=>{
+        res.sendStatus(e)
+    })
+})
+
+module.exports = router

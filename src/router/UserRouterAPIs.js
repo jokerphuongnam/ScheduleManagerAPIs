@@ -1,6 +1,9 @@
-import Express from 'express'
-import multer from 'multer'
-import UserRepository from '../repository/UserRepository'
+const Express = require('express')
+const multer = require('multer')
+const UserRepository = require('../repository/UserRepository')
+const {
+    exportFromBodyForUser
+} = require('../database/utils/ObjecUtils/ObjectUtils')
 
 const router = Express.Router()
 const repository = new UserRepository()
@@ -19,13 +22,13 @@ router.get('/login', (req, res) => {
 })
 
 router.post('/register', upload, (req, res) => {
-    res.json(req.file.fieldname)
-    // repository.register(req.body).then((user) => {
-    //         res.json(user)
-    //     })
-    //     .catch((e) => {
-    //         res.sendStatus(e)
-    //     })
+    req.exportFromBodyForUser = exportFromBodyForUser
+    repository.register(req.exportFromBodyForUser()).then((user) => {
+            res.json(user)
+        })
+        .catch((e) => {
+            res.sendStatus(e)
+        })
 })
 
 router.put('/addtoken', (req, res) => {
@@ -51,4 +54,9 @@ router.put('/forgotpassword', (req, res) => {
         res.sendStatus(e)
     })
 })
-export default router;
+
+router.put('editprofile', (req, res) => {
+    
+})
+
+module.exports = router;

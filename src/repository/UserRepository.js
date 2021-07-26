@@ -1,12 +1,12 @@
-import loginType from '../database/utils/loginType.json'
-import MSSqlUsers from '../database/users/MSSqlUsers'
-import FirebaseUser from '../database/users/FirebaseUser'
-import FirebaseMedia from '../database/media/FirebaseMedia'
+const loginType = require('../database/utils/loginType.json')
+const MSSqlUsers = require('../database/users/MSSqlUsers')
+const FirebaseUser = require('../database/users/FirebaseUser')
+const MultiMedia = require('../database/media/MultiMedia')
 
-export default class UserRepository {
+module.exports = class UserRepository {
     mssqlUsers = new MSSqlUsers()
     firebaseUsers = new FirebaseUser()
-    firebaseMedia = new FirebaseMedia()
+    media = new MultiMedia()
 
     userResolve(user) {
         return {
@@ -16,8 +16,8 @@ export default class UserRepository {
             })
         }
     }
-
-    login({
+    
+     login({
         email,
         password,
         loginId
@@ -72,7 +72,7 @@ export default class UserRepository {
                 }).then((user) => {
                     if (avatar) {
                         avatar.filename = user.userId
-                        this.firebaseMedia.saveAvatar(avatar).then(() => {
+                        this.media.saveAvatar(avatar).then(() => {
                             resolve(user)
                         }).catch((e) => {
                             console.log(e)
@@ -83,15 +83,13 @@ export default class UserRepository {
                     reject(e)
                 })
             }
-            if (!firstName || !lastName || !birthday || !gender) {
-                reject(400)
-            } else if (!loginId || !loginType) {
+            if ((!firstName || !lastName || !birthday || !gender) || (((loginId && loginType) && (email && password)))) {
                 reject(400)
             } else if (loginId && loginType) {
                 createUser(loginId, loginType).catch((e) => {
                     reject(e)
                 })
-            } else if (!loginId && !loginType) {
+            } else if (email && password) {
                 this.firebaseUsers.register({
                     email,
                     password
@@ -155,5 +153,25 @@ export default class UserRepository {
 
     forgotPassword(email) {
         return this.firebaseUsers.forgotPassword(email)
+    }
+
+    editProfile(user) {
+        return new Promise((resolve, reject) => {
+            //{userId, avatar, firstName, lastName, birthday, gender}
+            const editUser = (params) => {
+                return this.mssqlUsers.editUser({
+                    ...params,
+                    avatar: params.avatar ? params.avatar : null
+                }).then((user) => {
+                    resolve(user)
+                }).catch((e) => {
+                    reject(e)
+                })
+            }
+
+            if (user.filename) {
+
+            }
+        })
     }
 }
