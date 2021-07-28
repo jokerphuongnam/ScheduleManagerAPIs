@@ -1,10 +1,16 @@
+const {
+    clearQuery
+} = require("../ObjecUtils/ObjectUtils")
+
+String.prototype.clearQuery = clearQuery
+
 module.exports = class QueryUtils {
     static login({
         loginId,
         userId
     }) {
         return `
-            EXEC	[dbo].[sp_login]
+            EXEC	dbo.sp_login
             @${loginId?'LOGIN_ID':'USER_ID'} = ${loginId?'N':''}'${loginId?loginId:userId}'
         `
     }
@@ -19,7 +25,7 @@ module.exports = class QueryUtils {
         avatar
     }) {
         return `
-            EXEC	[dbo].[sp_create_user]
+            EXEC	dbo.sp_create_user
             @FIRST_NAME = N'${firstName}',
             @LAST_NAME = N'${lastName}',
             @BIRTHDAY = ${birthday},
@@ -30,7 +36,6 @@ module.exports = class QueryUtils {
         `
     }
 
-    //
     static editUser({
         userId,
         avatar,
@@ -40,12 +45,18 @@ module.exports = class QueryUtils {
         gender
     }) {
         return `
-            UPDATE [dbo].[users] SET 
-                avatar = ${avatar? `N'${avatar}'`: 'NULL'}
-                ${firstName? `,first_name = N'${firstName}'`: ''}
-                ${lastName? `,first_name = N'${lastName}'`: ''}
-                ${birthday? `,first_name = ${lastName}`: ''}
-                ${gender? `,first_name = ${gender === true ? 1 : 0}`: ''}
+            UPDATE dbo.users
+            SET 
+                ${(()=>{
+                    const modified = `
+                        ${avatar == null ? 'avatar = NULL': avatar == undefined ? '': `avatar = N'${avatar}'`}${firstName? `,
+                        first_name = N'${firstName}'`: ''}${lastName? `,
+                        last_name = N'${lastName}'`: ''}${birthday? `,
+                        birthday = ${birthday}`: ''}${!(gender == null || gender == undefined)? `,
+                        gender = ${gender === true ? 1 : 0}`: ''}
+                    `
+                    return avatar == undefined ? modified : modified.clearQuery()
+                })()}
             WHERE user_id = '${userId}'
         `
     }
@@ -56,7 +67,7 @@ module.exports = class QueryUtils {
         type
     }) {
         return `
-            EXEC	[dbo].[sp_add_token]
+            EXEC	dbo.sp_add_token
             @USER_ID = '${userId}',
             @LOGIN_ID = N'${loginId}',
             @LOGIN_TYPE = N'${type}'
@@ -69,7 +80,7 @@ module.exports = class QueryUtils {
         endTime
     }) {
         return `
-            EXEC	[dbo].[sp_get_schedules]
+            EXEC	dbo.sp_get_schedules
             @USER_ID = '${userId}',
             @START_TIME = ${startTime ? startTime : 'NULL'},
             @END_TIME = ${endTime ? endTime : 'NULL'}
@@ -78,7 +89,7 @@ module.exports = class QueryUtils {
 
     static getScheduleInfo(scheduleId) {
         return `
-            EXEC	[dbo].[sp_get_schedule_info]
+            EXEC	dbo.sp_get_schedule_info
             @SCHEDULE_ID = '${scheduleId}'
         `
     }
@@ -90,7 +101,7 @@ module.exports = class QueryUtils {
         userId
     }) {
         return `
-            EXEC	[dbo].[sp_create_schedule]
+            EXEC	dbo.sp_create_schedule
             @TITLE = N'${title}',
             @DESCRIPTION = N'${description}',
             @SCHEDULE_TIME = ${scheduleTime},
@@ -107,7 +118,6 @@ module.exports = class QueryUtils {
         `
     }
 
-    //
     static createTask({
         detail,
         scheduleId,
@@ -126,7 +136,6 @@ module.exports = class QueryUtils {
         `
     }
 
-    //
     static editTask({
         taskId,
         detail,
@@ -134,18 +143,20 @@ module.exports = class QueryUtils {
     }) {
         return `
             UPDATE dbo.tasks
-            SET 
-                detail = N'${detail}'${finishBy ? `,
-                        finish_at = ,
-                        finish_by = ''
-                    `:''
-                }
+                SET
+                    ${(() =>{
+                        const modified = `
+                            ${detail ?`detail = N'${detail}'`: ''}${finishBy === undefined? '': `,
+                            finish_at = ${finishBy ?'dbo.currentTimeMilliseconds()' :'NULL'}`}${finishBy === undefined? '': `,
+                            finish_by = ${finishBy ? `'${finishBy}'` :'NULL'}`}
+                        `
+                        return detail ? modified : modified.clearQuery()
+                    })()}
             WHERE
                 task_id = '${taskId}'
         `
     }
 
-    //
     static deleteTask(taskId) {
         return `
             DELETE FROM
@@ -155,11 +166,10 @@ module.exports = class QueryUtils {
         `
     }
 
-    //
     static addMember({
-        userIdAdded,
+        userIdBeAdded,
         scheduleId,
-        userId
+        userIdAdd
     }) {
         return `
             INSERT INTO dbo.members(
@@ -167,24 +177,26 @@ module.exports = class QueryUtils {
                 schedule_id,
                 add_by_or_founder
             ) VALUES (
-                '${userIdAdded}',
+                '${userIdBeAdded}',
                 '${scheduleId}',
-                '${userId}'
+                '${userIdAdd}'
             )
         `
     }
 
-    //
-    static leaveGroup(userId) {
+    static leaveGroup({
+        userId,
+        scheduleId
+    }) {
         return `
             DELETE FROM
                 dbo.members
             WHERE
-                dbo.members.user_id = '${userId}'
+                dbo.members.user_id = '${userId}' AND
+                dbo.members.schedule_id = '${scheduleId}'
         `
     }
 
-    //
     static createMedia({
         mediaType,
         mediaName,
@@ -192,7 +204,7 @@ module.exports = class QueryUtils {
         userId
     }) {
         return `
-            EXEC	[dbo].[sp_add_media]
+            EXEC	dbo.sp_add_media
             @MEDIA_TYPE = N'${mediaType}',
             @MEDIA_NAME = N'${mediaName}',
             @SCHEDULE_ID = '${scheduleId}',
@@ -200,13 +212,10 @@ module.exports = class QueryUtils {
         `
     }
 
-    //
     static deleteMedia(mediaId) {
         return `
-            DELETE FROM
-                dbo.multimedia
-            WHERE
-                dbo.multimedia.media_id = '${mediaId}'
+            EXEC	dbo.sp_delete_media
+            @MEDIA_ID = '${mediaId}'
         `
     }
 }

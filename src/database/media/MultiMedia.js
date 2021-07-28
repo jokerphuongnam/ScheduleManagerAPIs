@@ -1,19 +1,21 @@
-module.exports = class MultiMedia {
-    saveImage(iamge){
-        return new Promise((resolve, reject)=>{
+module.exports = MultiMedia = () => {
+    return new class {
+        saveImage(iamge) {
+            return new Promise((resolve, reject) => {
+                resolve({})
+            })
+        }
 
-        })
-    }
+        changeImage(oldImage, newImage) {
+            return new Promise((resolve, reject) => {
+                resolve({})
+            })
+        }
 
-    changeImage(oldImage, newImage){
-        return new Promise((resolve, reject)=>{
-
-        })
-    }
-
-    deleteImage(imageName){
-        return new Promise((resolve, reject)=>{
-            
-        })
-    }
+        deleteImage(imageName) {
+            return new Promise((resolve, reject) => {
+                resolve({})
+            })
+        }
+    }()
 }

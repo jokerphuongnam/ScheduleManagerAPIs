@@ -1,21 +1,47 @@
 const MSSqlSchedules = require('../database/schedules/MSSqlSchedules')
 
-module.exports = class ScheduleRepository {
-    msSqlSchedules = new MSSqlSchedules()
+module.exports = ScheduleRepository = () => {
+    const msSqlSchedules = MSSqlSchedules()
 
-    getSchedules(scheduleQuery){
-        return this.msSqlSchedules.getSchedules(scheduleQuery)
-    }
+    return new class {
+        getSchedules(scheduleQuery){
+            return msSqlSchedules.getSchedules(scheduleQuery)
+        }
+    
+        getScheduleInfo(scheduleId){
+            return msSqlSchedules.getScheduleInfo(scheduleId)
+        }
+    
+        deleteSchedule(scheduleId){
+            return msSqlSchedules.deleteSchedule(scheduleId)
+        }
+    
+        createTask(task){
+            return msSqlSchedules.createTask(task)
+        }
 
-    getScheduleInfo(scheduleId){
-        return this.msSqlSchedules.getScheduleInfo(scheduleId)
-    }
+        editTask(task){
+            return msSqlSchedules.editTask(task)
+        }
 
-    deleteSchedule(scheduleId){
-        return this.msSqlSchedules.deleteSchedule(scheduleId)
-    }
+        deleteTask(taskId){
+            return msSqlSchedules.deleteTask(taskId)
+        }
 
-    createTask(task){
-        return this.msSqlSchedules.createTask(task)
-    }
+        addMember(memberInfo){
+            return msSqlSchedules.addMember(memberInfo)
+        }
+
+        leaveGroup(member){
+            return msSqlSchedules.leaveGroup(member)
+        }
+
+        addMedia(multimedia){
+            return msSqlSchedules.addMedia(multimedia)
+        }
+
+        deleteMedia(media){
+            return msSqlSchedules.deleteMedia(media)
+        }
+    }()
 }

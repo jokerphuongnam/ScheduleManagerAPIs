@@ -1,14 +1,14 @@
-const loginType = require('../database/utils/loginType.json')
+const LoginType = require('../database/utils/loginType.json')
 const MSSqlUsers = require('../database/users/MSSqlUsers')
 const FirebaseUser = require('../database/users/FirebaseUser')
 const MultiMedia = require('../database/media/MultiMedia')
 
-module.exports = class UserRepository {
-    mssqlUsers = new MSSqlUsers()
-    firebaseUsers = new FirebaseUser()
-    media = new MultiMedia()
+module.exports = UserRepository = () => {
+    const mssqlUsers = MSSqlUsers()
+    const firebaseUsers = FirebaseUser()
+    const media = MultiMedia()
 
-    userResolve(user) {
+    function userResolve(user) {
         return {
             ...user,
             logins: user.logins.map((login) => {
@@ -16,162 +16,219 @@ module.exports = class UserRepository {
             })
         }
     }
-    
-     login({
-        email,
-        password,
-        loginId
-    }) {
-        return new Promise((resolve, reject) => {
-            const login = (id) => {
-                this.mssqlUsers.login({
-                        loginId: id
+
+    return new class {
+        login({
+            email,
+            password,
+            loginId
+        }) {
+            return new Promise((resolve, reject) => {
+                const login = (id) => {
+                    mssqlUsers.login({
+                            loginId: id
+                        })
+                        .then((user) => {
+                            resolve(userResolve(user))
+                        }).catch((e) => {
+                            reject(e)
+                        })
+                }
+                if (loginId) {
+                    login(loginId)
+                } else {
+                    firebaseUsers.loginWithEmailPass({
+                            email,
+                            password
+                        })
+                        .then((userIdFromFirebase) => {
+                            login(userIdFromFirebase)
+                        }).catch((e) => {
+                            reject(e)
+                        })
+                }
+            })
+        }
+
+        register({
+            email,
+            password,
+            firstName,
+            lastName,
+            birthday,
+            gender,
+            loginId,
+            loginType,
+            avatar
+        }) {
+            return new Promise((resolve, reject) => {
+                const createUser = (uid, type) => {
+                    return mssqlUsers.createUser({
+                        firstName,
+                        lastName,
+                        birthday,
+                        gender,
+                        loginId: uid,
+                        type
+                    }).then((user) => {
+                        resolve(userResolve(user))
                     })
-                    .then((user) => {
-                        resolve(this.userResolve(user))
-                    }).catch((e) => {
+                }
+
+                if ((!firstName || !lastName || !birthday || !gender) || (((loginId && loginType) && (email && password)))) {
+                    reject(400)
+                } else if (loginId && loginType) {
+                    createUser(loginId, loginType).catch((e) => {
                         reject(e)
                     })
-            }
-            if (loginId) {
-                login(loginId)
-            } else {
-                this.firebaseUsers.loginWithEmailPass({
+                } else if (email && password) {
+                    firebaseUsers.register({
                         email,
                         password
-                    })
-                    .then((userIdFromFirebase) => {
-                        login(userIdFromFirebase)
+                    }).then((uid) => {
+                        return createUser(uid, LoginType.emailPass)
+                            .catch((e) => {
+                                console.log(e)
+                                firebaseUsers.deleteUser()
+                                    .then(() => {
+                                        reject(e)
+                                    })
+                                    .catch((err) => {
+                                        reject(e)
+                                    })
+                            })
                     }).catch((e) => {
                         reject(e)
                     })
-            }
-        })
-    }
+                } else {
+                    reject(400)
+                }
+            })
+        }
 
-    register({
-        email,
-        password,
-        firstName,
-        lastName,
-        birthday,
-        gender,
-        loginId,
-        loginType,
-        avatar
-    }) {
-        return new Promise((resolve, reject) => {
-            const createUser = (uid, type) => {
-                return this.mssqlUsers.createUser({
-                    firstName,
-                    lastName,
-                    birthday,
-                    gender,
-                    uid,
+        addToken({
+            userId,
+            email,
+            password,
+            loginId,
+            loginType
+        }) {
+            return new Promise((resolve, reject) => {
+                const add = (tokenId, type) => mssqlUsers.addToken({
+                    userId,
+                    loginId: tokenId,
                     type
                 }).then((user) => {
-                    if (avatar) {
-                        avatar.filename = user.userId
-                        this.media.saveAvatar(avatar).then(() => {
-                            resolve(user)
-                        }).catch((e) => {
-                            console.log(e)
-                        })
-                    }
-                    resolve(user)
-                }).catch((e) => {
-                    reject(e)
+                    resolve(userResolve(user))
                 })
-            }
-            if ((!firstName || !lastName || !birthday || !gender) || (((loginId && loginType) && (email && password)))) {
-                reject(400)
-            } else if (loginId && loginType) {
-                createUser(loginId, loginType).catch((e) => {
-                    reject(e)
-                })
-            } else if (email && password) {
-                this.firebaseUsers.register({
-                    email,
-                    password
-                }).then((uid) => {
-                    return createUser(uid, loginType.emailPass)
-                        .catch((e) => {
-                            this.mssqlUsers.deleteUser()
-                                .then((uid) => {
-                                    reject(e)
-                                })
-                                .catch((err) => {
-                                    reject(err)
-                                })
-                        })
-                }).catch((e) => {
-                    reject(e)
-                })
-            } else {
-                reject(400)
-            }
-        })
-    }
 
-    addToken({
-        userId,
-        loginId,
-        type
-    }) {
-        return new Promise((resolve, reject) => {
-            this.mssqlUsers.addToken({
-                userId,
-                loginId,
-                type
-            }).then((user) => {
-                resolve(user)
-            }).catch((e) => {
-                reject(e)
+                if (loginId && loginType) {
+                    add(loginId, loginType).catch((e) => {
+                        reject(e)
+                    })
+                } else if (email && password) {
+                    firebaseUsers.register({
+                        email,
+                        password
+                    }).then((uid) => {
+                        return add(uid, LoginType.emailPass)
+                            .catch((e) => {
+                                console.log(e)
+                                return firebaseUsers.deleteUser()
+                                    .then(() => {
+                                        reject(e)
+                                    })
+                                    .catch((err) => {
+                                        reject(e)
+                                    })
+                            })
+                    }).catch((e) => {
+                        reject(e)
+                    })
+                }
             })
-        })
-    }
+        }
 
-    changePassword(user) {
-        return new Promise((resolve, reject) => {
-            this.mssqlUsers.login(user).then((userByDatabase) => {
-                const loginId = userByDatabase.logins.filter((e) => {
-                    return e.login === loginType.emailPass
-                }).map((e) => {
-                    return e.loginId
-                })[0]
-                this.firebaseUsers.changePassword({
-                    ...user,
-                    loginId
-                }).then(() => {
-                    resolve(this.userResolve(userByDatabase))
-                }).catch((e) => {
-                    reject(e)
+        changePassword(user) {
+            return new Promise((resolve, reject) => {
+                mssqlUsers.login(user).then((userByDatabase) => {
+                    const loginId = userByDatabase.logins.filter((e) => {
+                        return e.login === LoginType.emailPass
+                    }).map((e) => {
+                        return e.loginId
+                    })[0]
+                    firebaseUsers.changePassword({
+                        ...user,
+                        loginId
+                    }).then(() => {
+                        resolve(this.userResolve(userByDatabase))
+                    }).catch((e) => {
+                        reject(e)
+                    })
                 })
             })
-        })
-    }
+        }
 
-    forgotPassword(email) {
-        return this.firebaseUsers.forgotPassword(email)
-    }
+        forgotPassword(email) {
+            return firebaseUsers.forgotPassword(email)
+        }
 
-    editProfile(user) {
-        return new Promise((resolve, reject) => {
-            //{userId, avatar, firstName, lastName, birthday, gender}
-            const editUser = (params) => {
-                return this.mssqlUsers.editUser({
-                    ...params,
-                    avatar: params.avatar ? params.avatar : null
+        editProfile({
+            userId,
+            avatar,
+            firstName,
+            lastName,
+            birthday,
+            gender,
+            avatarFile
+        }) {
+            return new Promise((resolve, reject) => {
+                //{userId, avatar, firstName, lastName, birthday, gender}
+                const editUser = (params) => mssqlUsers.editUser({
+                    ...params
                 }).then((user) => {
-                    resolve(user)
-                }).catch((e) => {
-                    reject(e)
+                    resolve(userResolve(user))
                 })
-            }
 
-            if (user.filename) {
-
-            }
-        })
-    }
+                if (!userId) {
+                    reject(400)
+                    return
+                }
+                if (!avatarFile && !avatar) {
+                    editUser({
+                        userId,
+                        avatar: null,
+                        firstName,
+                        lastName,
+                        birthday,
+                        gender
+                    }).catch((e) => {
+                        reject(e)
+                    })
+                } else if (avatarFile) {
+                    editUser({
+                        userId,
+                        avatar: 'avatar',
+                        firstName,
+                        lastName,
+                        birthday,
+                        gender
+                    }).catch((e) => {
+                        reject(e)
+                    })
+                } else {
+                    editUser({
+                        userId,
+                        avatar: undefined,
+                        firstName,
+                        lastName,
+                        birthday,
+                        gender
+                    }).catch((e) => {
+                        reject(e)
+                    })
+                }
+            })
+        }
+    }()
 }

@@ -2,13 +2,17 @@ const msSqlUtils = require('../utils/MSSQLUtils/MSSQLUtils')
 const QueryUtils = require('../utils/MSSQLUtils/QueryUtils')
 const ScheduleType = require('./ScheduleType.json')
 const {
+    multimedia
+} = require('../media/MediaDest.json')
+const fs = require('fs')
+const {
     removeBlankProperties
 } = require('../utils/ObjecUtils/ObjectUtils')
 
 Object.prototype.removeBlankProperties = removeBlankProperties
 
-module.exports = class msSqlSchedules {
-    getArrayFromScheduleInfo(scheduleInfo, type) {
+module.exports = MsSqlSchedules = () => {
+    function getArrayFromScheduleInfo(scheduleInfo, type) {
         const tasks = []
         for (const info of scheduleInfo) {
             if (info.type === type) {
@@ -21,9 +25,9 @@ module.exports = class msSqlSchedules {
         return tasks
     }
 
-    buildSchedule(scheduleInfo) {
-        let schedule = this.getArrayFromScheduleInfo(scheduleInfo, ScheduleType.schedule)[0]
-        if(!schedule){
+    function buildSchedule(scheduleInfo) {
+        let schedule = getArrayFromScheduleInfo(scheduleInfo, ScheduleType.schedule)[0]
+        if (!schedule) {
             return null
         }
         schedule = {
@@ -33,7 +37,7 @@ module.exports = class msSqlSchedules {
         delete schedule.id
         return schedule ? {
             ...schedule,
-            tasks: this.getArrayFromScheduleInfo(scheduleInfo, ScheduleType.task).map((e) => {
+            tasks: getArrayFromScheduleInfo(scheduleInfo, ScheduleType.task).map((e) => {
                 e = {
                     taskId: e.id,
                     ...e
@@ -41,7 +45,7 @@ module.exports = class msSqlSchedules {
                 delete e.id
                 return e
             }),
-            members: this.getArrayFromScheduleInfo(scheduleInfo, ScheduleType.member).map((e) => {
+            members: getArrayFromScheduleInfo(scheduleInfo, ScheduleType.member).map((e) => {
                 e = {
                     memberId: e.id,
                     ...e
@@ -49,25 +53,25 @@ module.exports = class msSqlSchedules {
                 delete e.id
                 return e
             }),
-            images: this.getArrayFromScheduleInfo(scheduleInfo, ScheduleType.image).map((e) => {
+            images: getArrayFromScheduleInfo(scheduleInfo, ScheduleType.image).map((e) => {
                 e = {
-                    memberId: e.id,
+                    imageId: e.id,
                     ...e
                 }
                 delete e.id
                 return e
             }),
-            audios: this.getArrayFromScheduleInfo(scheduleInfo, ScheduleType.audio).map((e) => {
+            audios: getArrayFromScheduleInfo(scheduleInfo, ScheduleType.audio).map((e) => {
                 e = {
-                    memberId: e.id,
+                    audioId: e.id,
                     ...e
                 }
                 delete e.id
                 return e
             }),
-            videos: this.getArrayFromScheduleInfo(scheduleInfo, ScheduleType.video).map((e) => {
+            videos: getArrayFromScheduleInfo(scheduleInfo, ScheduleType.video).map((e) => {
                 e = {
-                    memberId: e.id,
+                    videoId: e.id,
                     ...e
                 }
                 delete e.id
@@ -76,60 +80,155 @@ module.exports = class msSqlSchedules {
         } : null
     }
 
-    getSchedules(scheduleQuery) {
-        return new Promise((resolve, reject) => {
-            msSqlUtils.execute(QueryUtils.getSchedules(scheduleQuery)).then((schedules) => {
-                resolve(schedules)
-            }).catch((e) => {
-                console.log(e)
-                reject(409)
+    return new class {
+        getSchedules(scheduleQuery) {
+            return new Promise((resolve, reject) => {
+                msSqlUtils.execute(QueryUtils.getSchedules(scheduleQuery)).then((schedules) => {
+                    resolve(schedules)
+                }).catch((e) => {
+                    console.log(e)
+                    reject(409)
+                })
             })
-        })
-    }
+        }
 
-    getScheduleInfo(scheduleId) {
-        return new Promise((resolve, reject) => {
-            msSqlUtils.execute(QueryUtils.getScheduleInfo(scheduleId)).then((scheduleInfo) => {
-                const schedule = this.buildSchedule(scheduleInfo)
+        getScheduleInfo(scheduleId) {
+            return new Promise((resolve, reject) => {
+                msSqlUtils.execute(QueryUtils.getScheduleInfo(scheduleId)).then((scheduleInfo) => {
+                    const schedule = buildSchedule(scheduleInfo)
+                    if (schedule) {
+                        resolve(schedule)
+                    } else {
+                        reject(404)
+                    }
+                }).catch((e) => {
+                    console.log(e)
+                    reject(409)
+                })
+            })
+        }
+
+        deleteSchedule(scheduleId) {
+            return new Promise((resolve, reject) => {
+                msSqlUtils.execute(QueryUtils.deleteSchedule(scheduleId)).then((scheduleInfo) => {
+                    const schedule = buildSchedule(scheduleInfo)
+                    if (schedule) {
+                        resolve(schedule)
+                    } else {
+                        reject(404)
+                    }
+                }).catch((e) => {
+                    reject(409)
+                })
+            })
+        }
+
+        createTask(task) {
+            return new Promise((resolve, reject) => {
+                msSqlUtils.execute(QueryUtils.createTask(task)).then((scheduleInfo) => {
+                    const schedule = buildSchedule(scheduleInfo)
+                    if (schedule) {
+                        resolve(schedule)
+                    } else {
+                        reject(404)
+                    }
+                }).catch((e) => {
+                    reject(409)
+                })
+            })
+        }
+
+        deleteTask(task) {
+            return new Promise((resolve, reject) => {
+                msSqlUtils.execute(QueryUtils.deleteTask(task)).then((scheduleInfo) => {
+                    const schedule = buildSchedule(scheduleInfo)
+                    if (schedule) {
+                        resolve(schedule)
+                    } else {
+                        reject(404)
+                    }
+                }).catch((e) => {
+                    reject(409)
+                })
+            })
+        }
+
+        editTask(task) {
+            return new Promise((resolve, reject) => {
+                console.log(QueryUtils.editTask(task))
+                msSqlUtils.execute(QueryUtils.editTask(task)).then((scheduleInfo) => {
+                    const schedule = buildSchedule(scheduleInfo)
+                    if (schedule) {
+                        resolve(schedule)
+                    } else {
+                        reject(404)
+                    }
+                }).catch((e) => {
+                    reject(409)
+                })
+            })
+        }
+
+        addMember(memberInfo) {
+            return new Promise((resolve, reject) => {
+                msSqlUtils.execute(QueryUtils.addMember(memberInfo)).then((scheduleInfo) => {
+                    const schedule = buildSchedule(scheduleInfo)
+                    if (schedule) {
+                        resolve(schedule)
+                    } else {
+                        reject(404)
+                    }
+                }).catch((e) => {
+                    reject(409)
+                })
+            })
+        }
+
+        leaveGroup(member) {
+            return new Promise((resolve, reject) => {
+                msSqlUtils.execute(QueryUtils.leaveGroup(member)).then((scheduleInfo) => {
+                    const schedule = buildSchedule(scheduleInfo)
+                    if (schedule) {
+                        resolve(schedule)
+                    } else {
+                        reject(404)
+                    }
+                }).catch((e) => {
+                    reject(409)
+                })
+            })
+        }
+
+        addMedia(multimedia) {
+            return new Promise(async (resolve, reject) => {
+                let schedule = null
+                for (const media of multimedia) {
+                    try {
+                        schedule = await msSqlUtils.execute(QueryUtils.createMedia(media))
+                    } catch (e) {
+                        reject(409)
+                        return
+                    }
+                }
+                schedule = buildSchedule(schedule)
                 if (schedule) {
                     resolve(schedule)
                 } else {
                     reject(404)
                 }
-            }).catch((e) => {
-                console.log(e)
-                reject(409)
             })
-        })
-    }
+        }
 
-    deleteSchedule(scheduleId){
-        return new Promise((resolve, reject)=>{
-            msSqlUtils.execute(QueryUtils.deleteSchedule(scheduleId)).then((scheduleInfo)=>{
-                const schedule = this.buildSchedule(scheduleInfo)
-                if (schedule) {
-                    resolve(schedule)
-                } else {
-                    reject(404)
-                }
-            }).catch((e) => {
-                reject(409)
+        deleteMedia(media) {
+            return new Promise((resolve, reject) => {
+                msSqlUtils.execute(QueryUtils.deleteMedia(media)).then((mediaInfo) => {
+                    fs.unlinkSync(`${multimedia}${mediaInfo[0].mediaName}`)
+                    resolve(mediaInfo[0])
+                }).catch((e) => {
+                    console.log(e)
+                    reject(409)
+                })
             })
-        })
-    }
-
-    createTask(task){
-        return new Promise((resolve, reject)=>{
-            msSqlUtils.execute(QueryUtils.createTask(task)).then((scheduleInfo)=>{
-                const schedule = this.buildSchedule(scheduleInfo)
-                if (schedule) {
-                    resolve(schedule)
-                } else {
-                    reject(404)
-                }
-            }).catch((e) => {
-                reject(409)
-            })
-        })
-    }
+        }
+    }()
 }

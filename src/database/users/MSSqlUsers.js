@@ -11,9 +11,8 @@ Object.defineProperty(Object.prototype, 'removeBlankProperties', {
     configurable: true
 })
 
-module.exports = class MSSqlUsers {
-
-    getUserAndLogins(values) {
+module.exports = MSSqlUsers = () => {
+    function getUserAndLogins(values) {
         let user = {
             ...values[0],
             logins: []
@@ -35,67 +34,71 @@ module.exports = class MSSqlUsers {
         return user.removeBlankProperties()
     }
 
-    login(user) {
-        return new Promise((resolve, reject) => {
-            msSqlUtils.execute(QueryUtils.login(user)).then((value) => {
-                user = value
-                if (user) {
-                    user = this.getUserAndLogins(value)
-                    resolve(user)
-                } else {
-                    reject(404)
-                }
-            }).catch((e) => {
-                reject(409)
-            })
-        })
-    }
-
-    createUser(user) {
-        return new Promise((resolve, reject) => {
-            msSqlUtils.execute(QueryUtils.createUser(user)).then((value) => {
-                user = value
-                if (user) {
-                    user = this.getUserAndLogins(value)
-                    resolve(user)
-                } else {
+    return new class {
+        login(user) {
+            return new Promise((resolve, reject) => {
+                msSqlUtils.execute(QueryUtils.login(user)).then((value) => {
+                    user = value
+                    if (user) {
+                        user = getUserAndLogins(value)
+                        resolve(user)
+                    } else {
+                        reject(404)
+                    }
+                }).catch((e) => {
                     reject(409)
-                }
-            }).catch((e) => {
-                reject(409)
+                })
             })
-        })
-    }
+        }
 
-    addToken(login) {
-        return new Promise((resolve, reject) => {
-            msSqlUtils.execute(QueryUtils.addToken(login)).then((value) => {
-                user = value
-                if (user) {
-                    user = this.getUserAndLogins(value)
-                    resolve(user)
-                } else {
+        createUser(user) {
+            return new Promise((resolve, reject) => {
+                msSqlUtils.execute(QueryUtils.createUser(user)).then((value) => {
+                    user = value
+                    if (user) {
+                        user = getUserAndLogins(value)
+                        resolve(user)
+                    } else {
+                        reject(409)
+                    }
+                }).catch((e) => {
                     reject(409)
-                }
-            }).catch((e) => {
-                reject(409)
+                })
             })
-        })
-    }
+        }
 
-    editUser(user) {
-        return new Promise((resolve, reject) => {
-            msSqlUtils.execute(QueryUtils.editUser(user)).then((user) => {
-                user = value
-                if (user) {
-                    user = this.getUserAndLogins(value)
-                    resolve(user)
-                } else {
+        addToken(login) {
+            return new Promise((resolve, reject) => {
+                msSqlUtils.execute(QueryUtils.addToken(login)).then((value) => {
+                    let user = value
+                    if (user) {
+                        user = getUserAndLogins(value)
+                        resolve(user)
+                    } else {
+                        reject(409)
+                    }
+                }).catch((e) => {
+                    console.log(e)
                     reject(409)
-                }
-            }).catch((e) => {
-                reject(409)
+                })
             })
-        })
-    }
+        }
+
+        editUser(user) {
+            return new Promise((resolve, reject) => {
+                msSqlUtils.execute(QueryUtils.editUser(user)).then((value) => {
+                    user = value
+                    if (user) {
+                        user = getUserAndLogins(value)
+                        resolve(user)
+                    } else {
+                        reject(409)
+                    }
+                }).catch((e) => {
+                    console.log(e)
+                    reject(409)
+                })
+            })
+        }
+    }()
 }
