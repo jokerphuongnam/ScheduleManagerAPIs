@@ -4,44 +4,62 @@ module.exports = ScheduleRepository = () => {
     const msSqlSchedules = MSSqlSchedules()
 
     return new class {
-        getSchedules(scheduleQuery){
+        getSchedules(scheduleQuery) {
             return msSqlSchedules.getSchedules(scheduleQuery)
         }
-    
-        getScheduleInfo(scheduleId){
+
+        getScheduleInfo(scheduleId) {
             return msSqlSchedules.getScheduleInfo(scheduleId)
         }
-    
-        deleteSchedule(scheduleId){
+
+        deleteSchedule(scheduleId) {
             return msSqlSchedules.deleteSchedule(scheduleId)
         }
-    
-        createTask(task){
+
+        createTask(task) {
             return msSqlSchedules.createTask(task)
         }
 
-        editTask(task){
+        editTask(task) {
             return msSqlSchedules.editTask(task)
         }
 
-        deleteTask(taskId){
+        deleteTask(taskId) {
             return msSqlSchedules.deleteTask(taskId)
         }
 
-        addMember(memberInfo){
+        addMember(memberInfo) {
             return msSqlSchedules.addMember(memberInfo)
         }
 
-        leaveGroup(member){
+        leaveGroup(member) {
             return msSqlSchedules.leaveGroup(member)
         }
 
-        addMedia(multimedia){
+        addMedia(multimedia) {
             return msSqlSchedules.addMedia(multimedia)
         }
 
-        deleteMedia(media){
-            return msSqlSchedules.deleteMedia(media)
+        deleteMedia(mediaId) {
+            return msSqlSchedules.deleteMedia(mediaId)
+        }
+
+        deleteMultimedia(multimediaId) {
+            return new Promise(async (resolve, reject) => {
+                const multimedia = []
+                for (const mediaId of multimediaId) {
+                    try {
+                        const mediaInfo = await msSqlSchedules.deleteMedia(mediaId)
+                        multimedia.push(mediaInfo)
+                    } catch (e) {
+                        reject({
+                            multimedia,
+                            e
+                        })
+                    }
+                }
+                resolve(multimedia)
+            })
         }
     }()
 }

@@ -1,7 +1,8 @@
 const Express = require('express')
 const multer = require('multer')
-const path = require('path')
-const MediaDest = require('../database/media/MediaDest.json')
+const {
+    dest
+} = require('../database/media/MediaDest.json')
 const fs = require('fs')
 const {
     convertEmtpyStringToNull
@@ -12,8 +13,6 @@ String.prototype.convertEmtpyStringToNull = convertEmtpyStringToNull
 
 const router = Express.Router()
 const repository = ScheduleRepository()
-
-const dest = MediaDest.multimedia
 
 const upload = multer({
     dest
@@ -159,26 +158,20 @@ router.post('/media/addmultimedia', upload.array('multimedia'), (req, res, next)
         }
         res.sendStatus(400)
     } else {
+        req.body.mediaInfo = req.files.map((file) => {
+            return {
+                mediaName: file.path.split('\\').pop(),
+                mediaType: file.mimetype.split('/').shift(),
+                path: file.path,
+                scheduleId: req.body.scheduleId,
+                userId: req.body.userId
+            }
+        })
         next()
     }
 }, (req, res) => {
     // { files, scheduleId, userId }
-    const media = req.files.map((file) => {
-        return {
-            mediaName: file.path.split('\\').pop(),
-            mediaType: file.mimetype.split('/').shift(),
-            path: file.path
-        }
-    })
-    repository.addMedia(req.files.map((file) => {
-        return {
-            mediaName: file.path.split('\\').pop(),
-            mediaType: file.mimetype.split('/'),
-            path: file.path,
-            scheduleId: req.body.scheduleId,
-            userId: req.body.userId
-        }
-    })).then((scheduleInfo) => {
+    repository.addMedia(req.body.mediaInfo).then((scheduleInfo) => {
         res.json(scheduleInfo)
     }).catch((e) => {
         res.sendStatus(e)
@@ -188,8 +181,31 @@ router.post('/media/addmultimedia', upload.array('multimedia'), (req, res, next)
 router.delete('/media/deletemedia/:mediaId', (req, res) => {
     repository.deleteMedia(req.params.mediaId).then((media) => {
         res.json(media)
-    }).catch((e)=>{
+    }).catch((e) => {
         res.sendStatus(e)
+    })
+})
+
+router.delete('/media/deletemultimedia', (req, res, next) => {
+    if (req.body.multimediaId) {
+        try {
+            req.body.multimediaId = JSON.parse(req.body.multimediaId)
+            next()
+        } catch (e) {
+            res.sendStatus(400)
+        }
+    } else {
+        res.sendStatus(400)
+    }
+
+}, async (req, res) => {
+    const {
+        multimediaId
+    } = req.body
+    repository.deleteMultimedia(multimediaId).then((multimedia) => {
+        res.json(multimedia)
+    }).catch((e) => {
+        res.json(e.multimedia).status(e.status)
     })
 })
 

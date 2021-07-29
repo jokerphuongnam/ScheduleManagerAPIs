@@ -2,7 +2,7 @@ const msSqlUtils = require('../utils/MSSQLUtils/MSSQLUtils')
 const QueryUtils = require('../utils/MSSQLUtils/QueryUtils')
 const ScheduleType = require('./ScheduleType.json')
 const {
-    multimedia
+    dest
 } = require('../media/MediaDest.json')
 const fs = require('fs')
 const {
@@ -219,13 +219,12 @@ module.exports = MsSqlSchedules = () => {
             })
         }
 
-        deleteMedia(media) {
+        deleteMedia(mediaId) {
             return new Promise((resolve, reject) => {
-                msSqlUtils.execute(QueryUtils.deleteMedia(media)).then((mediaInfo) => {
-                    fs.unlinkSync(`${multimedia}${mediaInfo[0].mediaName}`)
+                msSqlUtils.execute(QueryUtils.deleteMedia(mediaId)).then((mediaInfo) => {
+                    fs.unlinkSync(`${dest}${mediaInfo[0].mediaName}`)
                     resolve(mediaInfo[0])
                 }).catch((e) => {
-                    console.log(e)
                     reject(409)
                 })
             })

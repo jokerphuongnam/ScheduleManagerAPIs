@@ -10,10 +10,11 @@ function removeBlankProperties() {
 function exportFromBodyForUser() {
     const gender = this.body.gender
     const birthday = Number(this.body.birthday)
+    const fileName = this.file ? this.file.path.split('\\').pop() : undefined
     return this.body ? {
         ...this.body,
         birthday: Number.isNaN(birthday) ? undefined : birthday,
-        avatar: this.file,
+        avatar: fileName ? fileName : this.body.avatar !== null || this.body.avatar !== undefined ? null : undefined,
         gender: gender ? typeof gender === 'string' ? gender.toLowerCase() == 'true' ? true : false : typeof gender === 'boolean' ? gender : undefined : undefined
     } : this
 }

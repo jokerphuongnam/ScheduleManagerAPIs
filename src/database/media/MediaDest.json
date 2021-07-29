@@ -1,4 +1,3 @@
 {
-    "avatar": "./public/data/uploads/avatar/",
-    "multimedia": "./public/data/uploads/multimedia/"
+    "dest": "./public/data/uploads/"
 }

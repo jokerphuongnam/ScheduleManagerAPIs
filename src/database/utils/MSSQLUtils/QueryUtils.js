@@ -49,13 +49,13 @@ module.exports = class QueryUtils {
             SET 
                 ${(()=>{
                     const modified = `
-                        ${avatar == null ? 'avatar = NULL': avatar == undefined ? '': `avatar = N'${avatar}'`}${firstName? `,
+                        ${avatar === null ? 'avatar = NULL': avatar === undefined ? '': `avatar = N'${avatar}'`}${firstName? `,
                         first_name = N'${firstName}'`: ''}${lastName? `,
                         last_name = N'${lastName}'`: ''}${birthday? `,
-                        birthday = ${birthday}`: ''}${!(gender == null || gender == undefined)? `,
+                        birthday = ${birthday}`: ''}${!(gender === null || gender === undefined)? `,
                         gender = ${gender === true ? 1 : 0}`: ''}
                     `
-                    return avatar == undefined ? modified : modified.clearQuery()
+                    return avatar !== undefined ? modified : modified.clearQuery()
                 })()}
             WHERE user_id = '${userId}'
         `
@@ -216,6 +216,29 @@ module.exports = class QueryUtils {
         return `
             EXEC	dbo.sp_delete_media
             @MEDIA_ID = '${mediaId}'
+        `
+    }
+
+    static search({
+        searchWord,
+        userId
+    }) {
+        return `
+            EXEC	dbo.sp_search
+            @SEARCH_WORD = N'${searchWord}',
+            @USER_ID = '${userId}'
+        `
+    }
+
+    static deleteSearch({
+        searchId,
+        userId
+    }) {
+
+        return `
+            DELETE FROM dbo.search_histories
+            WHERE
+                dbo.search_histories.${searchId ? 'search_id' : 'user_id'} = '${searchId ? searchId : userId}'
         `
     }
 }

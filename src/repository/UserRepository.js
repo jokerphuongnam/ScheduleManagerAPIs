@@ -1,12 +1,10 @@
 const LoginType = require('../database/utils/loginType.json')
 const MSSqlUsers = require('../database/users/MSSqlUsers')
 const FirebaseUser = require('../database/users/FirebaseUser')
-const MultiMedia = require('../database/media/MultiMedia')
 
 module.exports = UserRepository = () => {
     const mssqlUsers = MSSqlUsers()
     const firebaseUsers = FirebaseUser()
-    const media = MultiMedia()
 
     function userResolve(user) {
         return {
@@ -69,15 +67,14 @@ module.exports = UserRepository = () => {
                         birthday,
                         gender,
                         loginId: uid,
-                        type
+                        type,
+                        avatar
                     }).then((user) => {
                         resolve(userResolve(user))
                     })
                 }
 
-                if ((!firstName || !lastName || !birthday || !gender) || (((loginId && loginType) && (email && password)))) {
-                    reject(400)
-                } else if (loginId && loginType) {
+                if (loginId && loginType) {
                     createUser(loginId, loginType).catch((e) => {
                         reject(e)
                     })
@@ -173,62 +170,16 @@ module.exports = UserRepository = () => {
             return firebaseUsers.forgotPassword(email)
         }
 
-        editProfile({
-            userId,
-            avatar,
-            firstName,
-            lastName,
-            birthday,
-            gender,
-            avatarFile
-        }) {
-            return new Promise((resolve, reject) => {
-                //{userId, avatar, firstName, lastName, birthday, gender}
-                const editUser = (params) => mssqlUsers.editUser({
-                    ...params
-                }).then((user) => {
-                    resolve(userResolve(user))
-                })
+        editProfile(userInfo) {
+            return mssqlUsers.editUser(userInfo)
+        }
 
-                if (!userId) {
-                    reject(400)
-                    return
-                }
-                if (!avatarFile && !avatar) {
-                    editUser({
-                        userId,
-                        avatar: null,
-                        firstName,
-                        lastName,
-                        birthday,
-                        gender
-                    }).catch((e) => {
-                        reject(e)
-                    })
-                } else if (avatarFile) {
-                    editUser({
-                        userId,
-                        avatar: 'avatar',
-                        firstName,
-                        lastName,
-                        birthday,
-                        gender
-                    }).catch((e) => {
-                        reject(e)
-                    })
-                } else {
-                    editUser({
-                        userId,
-                        avatar: undefined,
-                        firstName,
-                        lastName,
-                        birthday,
-                        gender
-                    }).catch((e) => {
-                        reject(e)
-                    })
-                }
-            })
+        search(searchInfo){
+            return mssqlUsers.search(searchInfo)
+        }
+
+        deleteSearch(searchInfo){
+            return mssqlUsers.deleteSearch(searchInfo)
         }
     }()
 }

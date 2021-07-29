@@ -1,16 +1,20 @@
 const Express = require('express')
 const multer = require('multer')
+const {
+    dest
+} = require('../database/media/MediaDest.json')
 const UserRepository = require('../repository/UserRepository')
 const {
     exportFromBodyForUser
 } = require('../database/utils/ObjecUtils/ObjectUtils')
+const fs = require('fs')
 
 const router = Express.Router()
 const repository = UserRepository()
 
 const upload = multer({
-    storage: multer.memoryStorage()
-}).single('avatar')
+    dest
+})
 
 router.get('/login', (req, res) => {
     // { email, password, loginId }
@@ -22,14 +26,51 @@ router.get('/login', (req, res) => {
         })
 })
 
-router.post('/register', upload, (req, res) => {
+router.post('/register', upload.single('avatar'), (req, res, next) => {
+    req.exportFromBodyForUser = exportFromBodyForUser
+    const {
+        email,
+        password,
+        firstName,
+        lastName,
+        birthday,
+        gender,
+        loginId,
+        loginType,
+        avatar
+    } = {
+        ...req.exportFromBodyForUser(),
+        avatar: req.file ? req.file.path.split('\\').pop() : undefined
+    }
+    if ((firstName && lastName && birthday && gender) && !((email || password) && (loginId || loginType))) {
+        req.body.userInfo = {
+            email,
+            password,
+            firstName,
+            lastName,
+            birthday,
+            gender,
+            loginId,
+            loginType,
+            avatar
+        }
+        next()
+    } else {
+        if (avatar) {
+            fs.unlinkSync(req.file.path)
+        }
+        res.sendStatus(400)
+    }
+}, (req, res) => {
     // { email, password, firstName, lastName, birthday, gender, avatar }
     // { loginId, loginType, firstName, lastName, birthday, gender, avatar }
-    req.exportFromBodyForUser = exportFromBodyForUser
-    repository.register(req.exportFromBodyForUser()).then((user) => {
+    repository.register(req.body.userInfo).then((user) => {
             res.json(user)
         })
         .catch((e) => {
+            if (req.body.userInfo.avatar) {
+                fs.unlinkSync(req.file.path)
+            }
             res.sendStatus(e)
         })
 })
@@ -62,16 +103,71 @@ router.put('/forgotpassword', (req, res) => {
     })
 })
 
-router.put('/editprofile', upload, (req, res) => {
-    // { userId, avatar, firstName, lastName, birthday, gender }
+router.put('/editprofile', upload.single('avatar'), (req, res, next) => {
     req.exportFromBodyForUser = exportFromBodyForUser
-    repository.editProfile({
-        ...req.exportFromBodyForUser(),
-        avatar: req.body.avatar,
-        avatarFile: req.file
-    }).then((user) => {
+    req.body.userInfo = req.exportFromBodyForUser()
+    if (!req.body.userInfo.userId) {
+        if (req.file) {
+            fs.unlinkSync(req.file.path)
+        }
+        res.sendStatus(400)
+    } else {
+        next()
+    }
+}, (req, res) => {
+    // { userId, avatar, firstName, lastName, birthday, gender }
+    repository.editProfile(req.body.userInfo).then((user) => {
         res.json(user)
-    }).catch((e)=>{
+    }).catch((e) => {
+        if (req.file) {
+            fs.unlinkSync(req.file.path)
+        }
+        res.sendStatus(e)
+    })
+})
+
+router.post('/search', (req, res, next) => {
+    const {
+        userId,
+        searchWord
+    } = req.body
+    if (!userId || !searchWord) {
+        res.sendStatus(400)
+    } else {
+        req.body.userInfo = {
+            userId,
+            searchWord
+        }
+        next()
+    }
+}, (req, res) => {
+    //{ searchWord, userId }
+    repository.search(req.body.userInfo).then((searchWords) => {
+        res.json(searchWords)
+    }).catch((e) => {
+        res.sendStatus(e)
+    })
+})
+
+router.delete('/deleteSearch', (req, res, next) => {
+    const {
+        searchId,
+        userId
+    } = req.body
+    if ((searchId && userId) || (!searchId && !userId)) {
+        res.sendStatus(400)
+    } else {
+        req.body.searchInfo = {
+            searchId,
+            userId
+        }
+        next()
+    }
+}, (req, res) => {
+    //{ searchId, userId }
+    repository.deleteSearch(req.body.searchInfo).then((success) => {
+        res.sendStatus(success)
+    }).catch((e) => {
         res.sendStatus(e)
     })
 })
