@@ -4,6 +4,14 @@ module.exports = ScheduleRepository = () => {
     const msSqlSchedules = MSSqlSchedules()
 
     return new class {
+        createSchedule(scheduleInfo) {
+            return msSqlSchedules.createSchedule(scheduleInfo)
+        }
+
+        editSchedule(scheduleInfo) {
+            return msSqlSchedules.editSchedule(scheduleInfo)
+        }
+
         getSchedules(scheduleQuery) {
             return msSqlSchedules.getSchedules(scheduleQuery)
         }

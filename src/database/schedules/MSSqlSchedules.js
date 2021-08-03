@@ -81,6 +81,37 @@ module.exports = MsSqlSchedules = () => {
     }
 
     return new class {
+        createSchedule(scheduleInfo){
+            return new Promise((resolve, reject) => {
+                msSqlUtils.execute(QueryUtils.createSchedule(scheduleInfo)).then((scheduleInfo) => {
+                    const schedule = buildSchedule(scheduleInfo)
+                    if (schedule) {
+                        resolve(schedule)
+                    } else {
+                        reject(404)
+                    }
+                }).catch((e) => {
+                    reject(409)
+                })
+            })
+        }
+
+        editSchedule(scheduleInfo) {
+            return new Promise((resolve, reject) => {
+                msSqlUtils.execute(QueryUtils.editSchedule(scheduleInfo)).then((scheduleInfo) => {
+                    const schedule = buildSchedule(scheduleInfo)
+                    if (schedule) {
+                        resolve(schedule)
+                    } else {
+                        reject(404)
+                    }
+                }).catch((e) => {
+                    console.log(e)
+                    reject(409)
+                })
+            })
+        }
+
         getSchedules(scheduleQuery) {
             return new Promise((resolve, reject) => {
                 msSqlUtils.execute(QueryUtils.getSchedules(scheduleQuery)).then((schedules) => {
@@ -110,14 +141,23 @@ module.exports = MsSqlSchedules = () => {
 
         deleteSchedule(scheduleId) {
             return new Promise((resolve, reject) => {
-                msSqlUtils.execute(QueryUtils.deleteSchedule(scheduleId)).then((scheduleInfo) => {
+                msSqlUtils.execute(QueryUtils.deleteSchedule(scheduleId)).then(async (scheduleInfo) => {
                     const schedule = buildSchedule(scheduleInfo)
                     if (schedule) {
+                        const multimediaName = [
+                            ...schedule.images.map((image) => image.mediaUrl),
+                            ...schedule.audios.map((audio) => audio.mediaUrl),
+                            ...schedule.videos.map((video) => video.mediaUrl)
+                        ]
+                        for (const mediaName of multimediaName) {
+                            fs.unlinkSync(`${dest}${mediaName}`)
+                        }
                         resolve(schedule)
                     } else {
                         reject(404)
                     }
                 }).catch((e) => {
+                    console.log(e)
                     reject(409)
                 })
             })

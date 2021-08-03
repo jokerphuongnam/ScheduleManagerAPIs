@@ -129,20 +129,22 @@ router.put('/editprofile', upload.single('avatar'), (req, res, next) => {
 router.post('/search', (req, res, next) => {
     const {
         userId,
-        searchWord
+        searchWord,
+        isInsert
     } = req.body
     if (!userId || !searchWord) {
         res.sendStatus(400)
     } else {
-        req.body.userInfo = {
+        req.body.searchInfo = {
             userId,
-            searchWord
+            searchWord,
+            isInsert
         }
         next()
     }
 }, (req, res) => {
-    //{ searchWord, userId }
-    repository.search(req.body.userInfo).then((searchWords) => {
+    //{ searchWord, userId, isInsert }
+    repository.search(req.body.searchInfo).then((searchWords) => {
         res.json(searchWords)
     }).catch((e) => {
         res.sendStatus(e)

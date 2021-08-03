@@ -18,9 +18,61 @@ const upload = multer({
     dest
 })
 
-// const upload = multer({
-//     storage: multer.memoryStorage()
-// })
+router.post('/createschedule', (req, res, next) => {
+    const {
+        title,
+        description,
+        scheduleTime,
+        userId
+    } = req.body
+    if (!title || !description || !scheduleTime || !userId) {
+        res.sendStatus(400)
+    } else {
+        req.body.scheduleInfo = {
+            title,
+            description,
+            scheduleTime,
+            userId
+        }
+        next()
+    }
+}, (req, res) => {
+    // { title, description, scheduleTime, userId }
+    repository.createSchedule(req.body.scheduleInfo).then((scheduleInfo) => {
+        res.json(scheduleInfo)
+    }).catch((e) => {
+        res.sendStatus(e)
+    })
+})
+
+router.put('/editSchedule', (req, res, next) => {
+    const {
+        scheduleId,
+        title,
+        color,
+        description,
+        scheduleTime
+    } = req.body
+    if (!scheduleId) {
+        res.sendStatus(400)
+    } else {
+        req.body.scheduleInfo = {
+            scheduleId,
+            title,
+            color,
+            description,
+            scheduleTime
+        }
+        next()
+    }
+}, (req, res) => {
+    // { scheduleId, title, color, description, scheduleTime }
+    repository.editSchedule(req.body.scheduleInfo).then((scheduleInfo) => {
+        res.json(scheduleInfo)
+    }).catch((e) => {
+        res.sendStatus(e)
+    })
+})
 
 router.get('/scheduleinfo/:scheduleId', (req, res) => {
     repository.getScheduleInfo(req.params.scheduleId).then((scheduleInfo) => {

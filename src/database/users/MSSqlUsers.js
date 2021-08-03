@@ -112,6 +112,7 @@ module.exports = MSSqlUsers = () => {
                 msSqlUtils.execute(QueryUtils.search(searchInfo)).then((value) => {
                     resolve(value)
                 }).catch((e) => {
+                    console.log(e)
                     reject(409)
                 })
             })

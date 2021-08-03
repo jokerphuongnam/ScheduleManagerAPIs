@@ -109,12 +109,34 @@ module.exports = class QueryUtils {
         `
     }
 
+    static editSchedule({
+        scheduleId,
+        title,
+        color,
+        description,
+        scheduleTime,
+    }) {
+        return `
+            UPDATE dbo.schedules
+                SET
+                    ${(()=>{
+                        const modified = `
+                            ${title ? `title = N'${title}'` :''}${color?`,
+                            color = N'${color}'`:''}${description?`,
+                            description = N'${description}'`:''}${scheduleTime?`,
+                            schedule_time = ${scheduleTime}`:''}
+                        `
+                        return title ? modified : modified.clearQuery()
+                    })()}
+            WHERE
+                schedule_id = '${scheduleId}'
+        `
+    }
+
     static deleteSchedule(scheduleId) {
         return `
-            DELETE FROM
-                dbo.schedules
-            WHERE
-                dbo.schedules.schedule_id = '${scheduleId}'
+            EXEC	dbo.sp_delete_schedule
+            @SCHEDULE_ID = '${scheduleId}'
         `
     }
 
@@ -221,12 +243,14 @@ module.exports = class QueryUtils {
 
     static search({
         searchWord,
-        userId
+        userId,
+        isInsert
     }) {
         return `
             EXEC	dbo.sp_search
             @SEARCH_WORD = N'${searchWord}',
-            @USER_ID = '${userId}'
+            @USER_ID = '${userId}',
+            @IS_INSERT = ${isInsert ? 1: 0}
         `
     }
 
