@@ -1,14 +1,14 @@
 {
-    "server": "localhost",
+    "server": "ScheduleManger.mssql.somee.com",
     "authentication": {
         "type": "default",
         "options": {
-            "userName": "sa",
-            "password": "1"
+            "userName": "phuongnamp99_SQLLogin_1",
+            "password": "c26ly87i3o"
         }
     },
     "options": {
         "encrypt": false,
-        "database": "SchedulesManager"
+        "database": "ScheduleManger"
     }
 }
