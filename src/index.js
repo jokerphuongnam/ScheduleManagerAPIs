@@ -7,7 +7,6 @@ const path = require('path')
 const userRouter = require('./router/UserRouterAPIs')
 const scheduleRouter = require('./router/ScheduleRouterAPIs')
 const bodyParser = require('body-parser')
-
 const isProduction = process.env.NODE_ENV === 'production'
 const app = Express()
 
@@ -42,5 +41,5 @@ app.use('/user', userRouter)
 app.use('/schedule', scheduleRouter)
 
 app.listen(process.env.PORT || 4000, () => {
-    console.log(`Server is listening on port: ${PORT}`)
+    console.log(`Server is listening on port: ${process.env.PORT || 4000}`)
 })
