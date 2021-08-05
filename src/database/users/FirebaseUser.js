@@ -22,6 +22,7 @@ module.exports = FirebaseUser = () => {
                 auth.signInWithEmailAndPassword(email, password).then(() => {
                     resolve(this.currentUser.uid)
                 }).catch((e) => {
+                    console.log(e)
                     reject(404)
                 })
             })
@@ -67,7 +68,8 @@ module.exports = FirebaseUser = () => {
             return new Promise((resolve, reject) => {
                 auth.sendPasswordResetEmail(email).then(() => {
                     resolve(200)
-                }).catch(() => {
+                }).catch((e) => {
+                    console.log(e)
                     reject(404)
                 })
             })
@@ -78,7 +80,8 @@ module.exports = FirebaseUser = () => {
                 this.currentUser.delete().then(() => {
                         resolve(uid)
                     })
-                    .catch(() => {
+                    .catch((e) => {
+                        console.log(e)
                         reject(404)
                     })
             })

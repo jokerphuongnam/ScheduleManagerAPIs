@@ -8,6 +8,7 @@ const {
     convertEmtpyStringToNull
 } = require('../database/utils/ObjecUtils/ObjectUtils')
 const ScheduleRepository = require('../repository/ScheduleRepository')
+const path = require('path')
 
 String.prototype.convertEmtpyStringToNull = convertEmtpyStringToNull
 
@@ -194,16 +195,6 @@ router.post('/media/addmultimedia', upload.array('multimedia'), (req, res, next)
     } = req.body
     if (!scheduleId || !userId || !req.files) {
         if (req.files) {
-            const media = req.files.map((file) => {
-                return {
-                    mediaName: file.path.split('\\').pop(),
-                    mediaType: file.mimetype.split('/').shift(),
-                    path: file.path,
-                    scheduleId: req.body.scheduleId,
-                    userId: req.body.userId
-                }
-            })
-            console.log(media)
             req.files.forEach((file) => {
                 fs.unlinkSync("./" + file.path)
             })
@@ -212,7 +203,7 @@ router.post('/media/addmultimedia', upload.array('multimedia'), (req, res, next)
     } else {
         req.body.mediaInfo = req.files.map((file) => {
             return {
-                mediaName: file.path.split('\\').pop(),
+                mediaName: path.basename(file.path),
                 mediaType: file.mimetype.split('/').shift(),
                 path: file.path,
                 scheduleId: req.body.scheduleId,

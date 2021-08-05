@@ -91,6 +91,7 @@ module.exports = MsSqlSchedules = () => {
                         reject(404)
                     }
                 }).catch((e) => {
+                    console.log(e)
                     reject(409)
                 })
             })
@@ -173,6 +174,7 @@ module.exports = MsSqlSchedules = () => {
                         reject(404)
                     }
                 }).catch((e) => {
+                    console.log(e)
                     reject(409)
                 })
             })
@@ -188,6 +190,7 @@ module.exports = MsSqlSchedules = () => {
                         reject(404)
                     }
                 }).catch((e) => {
+                    console.log(e)
                     reject(409)
                 })
             })
@@ -204,6 +207,7 @@ module.exports = MsSqlSchedules = () => {
                         reject(404)
                     }
                 }).catch((e) => {
+                    console.log(e)
                     reject(409)
                 })
             })
@@ -219,6 +223,7 @@ module.exports = MsSqlSchedules = () => {
                         reject(404)
                     }
                 }).catch((e) => {
+                    console.log(e)
                     reject(409)
                 })
             })
@@ -234,6 +239,7 @@ module.exports = MsSqlSchedules = () => {
                         reject(404)
                     }
                 }).catch((e) => {
+                    console.log(e)
                     reject(409)
                 })
             })
@@ -246,6 +252,7 @@ module.exports = MsSqlSchedules = () => {
                     try {
                         schedule = await msSqlUtils.execute(QueryUtils.createMedia(media))
                     } catch (e) {
+                        console.log(e)
                         reject(409)
                         return
                     }
@@ -265,6 +272,7 @@ module.exports = MsSqlSchedules = () => {
                     fs.unlinkSync(`${dest}${mediaInfo[0].mediaName}`)
                     resolve(mediaInfo[0])
                 }).catch((e) => {
+                    console.log(e)
                     reject(409)
                 })
             })
