@@ -2,16 +2,16 @@ const {
     Request,
     Connection
 } = require('tedious')
-const configure = require('./configure.json') 
+const configure = require('./configure.json')
 
 function MSSQLUtils(configureParam) {
     const config = configureParam ? configureParam : configure
 
     return new class {
         getRequest(sqlQuery, callback = () => {}) {
-            return new Request(sqlQuery, callback);
+            return new Request(sqlQuery, callback)
         }
-    
+
         open() {
             return new Promise((resolve, reject) => {
                 const conn = new Connection(config)
@@ -26,27 +26,31 @@ function MSSQLUtils(configureParam) {
                 })
             })
         }
-    
+
         execute(sqlQuery) {
             return new Promise(async (resolve, reject) => {
                 const conn = await this.open();
                 let error = undefined
                 const request = this.getRequest(sqlQuery, (err) => {
                     error = err
-                });
+                })
                 const array = []
                 request.on("row", (columns) => {
                     const data = {}
                     columns.forEach((column) => {
-                        data[column.metadata.colName] = column.value;
-                    });
+                        let value = column.value
+                        if(value && column.metadata.type.type.toLowerCase() == 'intn') {
+                            value = Number(value)
+                        }
+                        data[column.metadata.colName] = value
+                    })
                     array.push(data)
-                });
+                })
                 request.on("error", (err) => {
                     conn.close()
                     reject(err)
                     error = err
-                });
+                })
                 request.on("done", function (rowCount, more) {});
                 request.on("requestCompleted", function () {
                     if (error) {
@@ -55,9 +59,9 @@ function MSSQLUtils(configureParam) {
                         resolve(array)
                     }
                     conn.close()
-                });
+                })
                 conn.execSql(request)
-            });
+            })
         }
     }()
 }
