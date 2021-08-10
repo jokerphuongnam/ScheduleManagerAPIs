@@ -16,6 +16,14 @@ const upload = multer({
     dest
 })
 
+router.get('/getuserbyemail/:email', (req, res) => {
+    repository.getLoginIdByEmail(req.params.email).then((user) => {
+        res.json(user)
+    }).catch((e) => {
+        res.sendStatus(e)
+    })
+})
+
 router.get('/login', (req, res) => {
     // { email, password, loginId }
     repository.login(req.query).then((user) => {

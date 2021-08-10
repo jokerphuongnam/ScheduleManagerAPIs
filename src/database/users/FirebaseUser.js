@@ -14,6 +14,17 @@ module.exports = FirebaseUser = () => {
             return auth.signOut()
         }
 
+        getLoginIdByEmail(email) {
+            return new Promise((resolve, reject) => {
+                adminAuth.getUserByEmail(email).then((user)=>{
+                    resolve(user.uid)
+                }).catch((e)=>{
+                    console.log(e)
+                    reject(404)
+                })
+            })
+        }
+
         loginWithEmailPass({
             email,
             password,

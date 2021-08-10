@@ -16,6 +16,10 @@ module.exports = UserRepository = () => {
     }
 
     return new class {
+        getLoginIdByEmail(email) {
+            return firebaseUsers.getLoginIdByEmail(email)
+        }
+
         login({
             email,
             password,
