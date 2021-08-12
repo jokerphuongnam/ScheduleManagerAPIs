@@ -8,10 +8,7 @@ const router = Express.Router()
 
 router.get('/:name', (req, res) => {
     res.sendFile(`${req.params.name}`, {
-        root: path.join(__dirname, `../.${dest}`),
-        headers: {
-            'Content-Type': 'image/jpeg'
-        }
+        root: path.join(__dirname, `../.${dest}`)
     })
 })
 
