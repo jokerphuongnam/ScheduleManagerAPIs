@@ -6,6 +6,7 @@ const Cors = require('cors')
 const path = require('path')
 const userRouter = require('./router/UserRouterAPIs')
 const scheduleRouter = require('./router/ScheduleRouterAPIs')
+const mediaRouter = require('./router/MediaRouterAPIs')
 const bodyParser = require('body-parser')
 const isProduction = process.env.NODE_ENV === 'production'
 const app = Express()
@@ -39,6 +40,7 @@ app.use(Express.static('/'))
 
 app.use('/user', userRouter)
 app.use('/schedule', scheduleRouter)
+app.use('/media', mediaRouter)
 
 app.listen(process.env.PORT || 4000, () => {
     console.log(`Server is listening on port: ${process.env.PORT || 4000}`)

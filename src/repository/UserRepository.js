@@ -23,7 +23,8 @@ module.exports = UserRepository = () => {
         login({
             email,
             password,
-            loginId
+            loginId,
+            userId
         }) {
             return new Promise((resolve, reject) => {
                 const login = (id) => {
@@ -38,6 +39,15 @@ module.exports = UserRepository = () => {
                 }
                 if (loginId) {
                     login(loginId)
+                } else if (userId) {
+                    mssqlUsers.login({
+                        userId
+                    })
+                    .then((user) => {
+                        resolve(userResolve(user))
+                    }).catch((e) => {
+                        reject(e)
+                    })
                 } else {
                     firebaseUsers.loginWithEmailPass({
                             email,

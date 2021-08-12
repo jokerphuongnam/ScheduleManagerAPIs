@@ -25,7 +25,7 @@ router.get('/getuserbyemail/:email', (req, res) => {
 })
 
 router.get('/login', (req, res) => {
-    // { email, password, loginId }
+    // { email, password, loginId, userId }
     repository.login(req.query).then((user) => {
             res.json(user)
         })
