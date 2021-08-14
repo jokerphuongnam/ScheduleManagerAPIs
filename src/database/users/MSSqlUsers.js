@@ -43,13 +43,19 @@ module.exports = MSSqlUsers = () => {
             return new Promise((resolve, reject) => {
                 msSqlUtils.execute(QueryUtils.login(user)).then((value) => {
                     user = value
-                    if (user) {
-                        user = getUserAndLogins(value)
-                        resolve(user)
-                    } else {
+                    if(user && Array.isArray(user)){
+                        if (user.length > 0) {
+                            user = getUserAndLogins(value)
+                            resolve(user)
+                        } else {
+                            reject(404)
+                        }
+                    }
+                    else {
                         reject(404)
                     }
                 }).catch((e) => {
+                    console.log(e)
                     reject(409)
                 })
             })
@@ -59,13 +65,19 @@ module.exports = MSSqlUsers = () => {
             return new Promise((resolve, reject) => {
                 msSqlUtils.execute(QueryUtils.createUser(user)).then((value) => {
                     user = value
-                    if (user) {
-                        user = getUserAndLogins(value)
-                        resolve(user)
-                    } else {
-                        reject(409)
+                    if(user && Array.isArray(user)){
+                        if (user.length > 0) {
+                            user = getUserAndLogins(value)
+                            resolve(user)
+                        } else {
+                            reject(404)
+                        }
+                    }
+                    else {
+                        reject(404)
                     }
                 }).catch((e) => {
+                    console.log(e)
                     reject(409)
                 })
             })
@@ -75,13 +87,19 @@ module.exports = MSSqlUsers = () => {
             return new Promise((resolve, reject) => {
                 msSqlUtils.execute(QueryUtils.addToken(login)).then((value) => {
                     let user = value
-                    if (user) {
-                        user = getUserAndLogins(value)
-                        resolve(user)
-                    } else {
-                        reject(409)
+                    if(user && Array.isArray(user)){
+                        if (user.length > 0) {
+                            user = getUserAndLogins(value)
+                            resolve(user)
+                        } else {
+                            reject(404)
+                        }
+                    }
+                    else {
+                        reject(404)
                     }
                 }).catch((e) => {
+                    console.log(e)
                     reject(409)
                 })
             })
@@ -91,17 +109,24 @@ module.exports = MSSqlUsers = () => {
             return new Promise((resolve, reject) => {
                 msSqlUtils.execute(QueryUtils.editUser(user)).then((value) => {
                     user = value
-                    if (user) {
-                        user = getUserAndLogins(value)
-                        if (user.oldAvatar) {
-                            fs.unlinkSync(`${dest}${user.oldAvatar}`)
+                    if(user && Array.isArray(user)){
+                        if (user.length > 0) {
+                            user = getUserAndLogins(value)
+                            if (user.oldAvatar) {
+                                fs.unlinkSync(`${dest}${user.oldAvatar}`)
+                            }
+                            delete user.oldAvatar
+                            resolve(user)
+                        } else {
+                            reject(404)
                         }
-                        delete user.oldAvatar
-                        resolve(user)
-                    } else {
+                    }
+                    else {
                         reject(404)
                     }
+                    
                 }).catch((e) => {
+                    console.log(e)
                     reject(409)
                 })
             })
@@ -123,6 +148,7 @@ module.exports = MSSqlUsers = () => {
                 msSqlUtils.execute(QueryUtils.deleteSearch(searchInfo)).then( ()=> {
                     resolve(200)
                 }).catch((e) => {
+                    console.log(e)
                     reject(409)
                 })
             })

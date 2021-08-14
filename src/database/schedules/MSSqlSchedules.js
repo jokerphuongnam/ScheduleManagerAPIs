@@ -55,7 +55,7 @@ module.exports = MsSqlSchedules = () => {
             }),
             images: getArrayFromScheduleInfo(scheduleInfo, ScheduleType.image).map((e) => {
                 e = {
-                    imageId: e.id,
+                    mediaId: e.id,
                     ...e
                 }
                 delete e.id
@@ -63,7 +63,7 @@ module.exports = MsSqlSchedules = () => {
             }),
             audios: getArrayFromScheduleInfo(scheduleInfo, ScheduleType.audio).map((e) => {
                 e = {
-                    audioId: e.id,
+                    mediaId: e.id,
                     ...e
                 }
                 delete e.id
@@ -71,7 +71,7 @@ module.exports = MsSqlSchedules = () => {
             }),
             videos: getArrayFromScheduleInfo(scheduleInfo, ScheduleType.video).map((e) => {
                 e = {
-                    videoId: e.id,
+                    mediaId: e.id,
                     ...e
                 }
                 delete e.id

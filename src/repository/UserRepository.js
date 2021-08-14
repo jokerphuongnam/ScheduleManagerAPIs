@@ -172,7 +172,7 @@ module.exports = UserRepository = () => {
                         ...user,
                         loginId
                     }).then(() => {
-                        resolve(this.userResolve(userByDatabase))
+                        resolve(userResolve(userByDatabase))
                     }).catch((e) => {
                         reject(e)
                     })
@@ -185,7 +185,13 @@ module.exports = UserRepository = () => {
         }
 
         editProfile(userInfo) {
-            return mssqlUsers.editUser(userInfo)
+            return new Promise((resolve, reject) => {
+                mssqlUsers.editUser(userInfo).then((userByDatabase) => {
+                    resolve(userResolve(userByDatabase))
+                }).catch((e) => {
+                    reject(e)
+                })
+            })
         }
 
         search(searchInfo){
