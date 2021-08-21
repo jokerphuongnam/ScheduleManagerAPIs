@@ -98,6 +98,7 @@ module.exports = class QueryUtils {
         title,
         description,
         scheduleTime,
+        color,
         userId
     }) {
         return `
@@ -105,6 +106,7 @@ module.exports = class QueryUtils {
             @TITLE = N'${title}',
             @DESCRIPTION = N'${description}',
             @SCHEDULE_TIME = ${scheduleTime},
+            @COLOR = ${color},
             @USER_ID = '${userId}'
         `
     }

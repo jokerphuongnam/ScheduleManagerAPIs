@@ -23,14 +23,16 @@ router.post('/createschedule', (req, res, next) => {
     const {
         title,
         description,
+        color,
         scheduleTime,
         userId
     } = req.body
-    if (!title || !description || !scheduleTime || !userId) {
+    if (!title || !description || !color || !scheduleTime || !userId) {
         res.sendStatus(400)
     } else {
         req.body.scheduleInfo = {
             title,
+            color,
             description,
             scheduleTime,
             userId
