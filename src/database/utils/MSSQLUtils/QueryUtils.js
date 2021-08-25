@@ -245,12 +245,14 @@ module.exports = class QueryUtils {
 
     static search({
         searchWord,
+        scheduleId,
         userId,
         isInsert
     }) {
         return `
             EXEC	dbo.sp_search
             @SEARCH_WORD = N'${searchWord}',
+            @SCHEDULE_ID = '${scheduleId}',
             @USER_ID = '${userId}',
             @IS_INSERT = ${isInsert ? 1: 0}
         `
