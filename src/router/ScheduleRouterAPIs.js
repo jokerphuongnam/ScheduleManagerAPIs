@@ -143,7 +143,7 @@ router.put('/task/edittask', (req, res, next) => {
     const body = req.body
     repository.editTask({
         ...body,
-        finishBy: body.finishBy.convertEmtpyStringToNull()
+        finishBy: body.finishBy === undefined ? undefined : body.finishBy.convertEmtpyStringToNull()
     }).then((scheduleInfo) => {
         res.json(scheduleInfo)
     }).catch((e) => {
@@ -205,8 +205,10 @@ router.post('/media/addmultimedia', upload.array('multimedia'), (req, res, next)
     } else {
         req.body.mediaInfo = req.files.map((file) => {
             return {
-                mediaName: path.basename(file.path),
+                mediaUrl: path.basename(file.path),
+                mediaName: file.originalname,
                 mediaType: file.mimetype.split('/').shift(),
+                mimetype: file.mimetype,
                 path: file.path,
                 scheduleId: req.body.scheduleId,
                 userId: req.body.userId

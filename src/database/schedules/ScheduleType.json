@@ -4,5 +4,6 @@
     "task": "task",
     "image": "image",
     "video": "video",
-    "audio": "audio"
+    "audio": "audio",
+    "application": "application"
 }

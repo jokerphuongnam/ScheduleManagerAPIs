@@ -224,22 +224,26 @@ module.exports = class QueryUtils {
     static createMedia({
         mediaType,
         mediaName,
+        mediaUrl,
         scheduleId,
+        mimetype,
         userId
     }) {
         return `
             EXEC	dbo.sp_add_media
             @MEDIA_TYPE = N'${mediaType}',
             @MEDIA_NAME = N'${mediaName}',
+            @MEDIA_URL = N'${mediaUrl}',
             @SCHEDULE_ID = '${scheduleId}',
+            @MIME_TYPE = N'${mimetype}',
             @ID_USER = '${userId}'
         `
     }
 
     static deleteMedia(mediaId) {
         return `
-            EXEC	dbo.sp_delete_media
-            @MEDIA_ID = '${mediaId}'
+            DELETE FROM dbo.multimedia
+            WHERE dbo.multimedia.media_id = '${mediaId}'
         `
     }
 

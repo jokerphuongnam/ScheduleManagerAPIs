@@ -13,16 +13,16 @@ Object.prototype.removeBlankProperties = removeBlankProperties
 
 module.exports = MsSqlSchedules = () => {
     function getArrayFromScheduleInfo(scheduleInfo, type) {
-        const tasks = []
+        const attr = []
         for (const info of scheduleInfo) {
             if (info.type === type) {
-                tasks.push({
+                attr.push({
                     ...info,
                     type: undefined
                 }.removeBlankProperties())
             }
         }
-        return tasks
+        return attr
     }
 
     function buildSchedule(scheduleInfo) {
@@ -70,6 +70,14 @@ module.exports = MsSqlSchedules = () => {
                 return e
             }),
             videos: getArrayFromScheduleInfo(scheduleInfo, ScheduleType.video).map((e) => {
+                e = {
+                    mediaId: e.id,
+                    ...e
+                }
+                delete e.id
+                return e
+            }),
+            applications: getArrayFromScheduleInfo(scheduleInfo, ScheduleType.application).map((e) => {
                 e = {
                     mediaId: e.id,
                     ...e
@@ -198,7 +206,6 @@ module.exports = MsSqlSchedules = () => {
 
         editTask(task) {
             return new Promise((resolve, reject) => {
-                console.log(QueryUtils.editTask(task))
                 msSqlUtils.execute(QueryUtils.editTask(task)).then((scheduleInfo) => {
                     const schedule = buildSchedule(scheduleInfo)
                     if (schedule) {
@@ -269,7 +276,7 @@ module.exports = MsSqlSchedules = () => {
         deleteMedia(mediaId) {
             return new Promise((resolve, reject) => {
                 msSqlUtils.execute(QueryUtils.deleteMedia(mediaId)).then((mediaInfo) => {
-                    fs.unlinkSync(`${dest}${mediaInfo[0].mediaName}`)
+                    fs.unlinkSync(`${dest}${mediaInfo[0].mediaUrl}`)
                     resolve(mediaInfo[0])
                 }).catch((e) => {
                     console.log(e)
